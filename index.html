@@ -122,9 +122,9 @@ body {
 #fullTree.active { display: block; }
 #listView.hidden { display: none; }
 
-/* Inner wrapper with minimum width so nothing overlaps */
+/* Inner wrapper - fixed wide width, forces horizontal scroll on phone */
 .ft-inner {
-  min-width: 750px; padding: 0 10px;
+  width: 950px; padding: 0 15px;
 }
 
 /* Centered row (children + parents) */
@@ -169,7 +169,7 @@ body {
 .ft-h { font-size: 7px; margin-top: 10px; flex-shrink: 0; }
 
 /* Spacer between groups */
-.ft-sp { width: 14px; flex-shrink: 0; }
+.ft-sp { width: 20px; flex-shrink: 0; }
 
 /* Scroll hint - only on mobile */
 .scroll-hint { display: none; }
@@ -189,7 +189,7 @@ body {
 .ft-center {
   width: 3px; flex-shrink: 0; align-self: stretch;
   background: linear-gradient(180deg, #FBBF24, #60A5FA);
-  border-radius: 3px; margin: 0 4px; min-height: 40px;
+  border-radius: 3px; margin: 0 20px; min-height: 40px;
 }
 
 /* Side labels */
