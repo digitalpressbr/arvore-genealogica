@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<title>Árvore Genealógica - Théo & Duda</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --blue: #3B82F6; --blue-dark: #1E40AF;
+  --pink: #EC4899; --pink-dark: #BE185D;
+  --gray: #9CA3AF;
+  --brown: #78350F; --warm: #FEF3C7; --cool: #EFF6FF;
+  --gold: #F59E0B;
+  --radius: 16px;
+  --shadow: 0 4px 20px rgba(0,0,0,0.1);
+}
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Nunito', sans-serif;
+  background: linear-gradient(135deg, #FDF2F8 0%, #EFF6FF 50%, #F0FDF4 100%);
+  min-height: 100vh; color: #1F2937;
+  padding: 16px; padding-bottom: 40px;
+}
+
+/* ===== HEADER ===== */
+.header { text-align: center; padding: 20px 0 10px; }
+.header h1 { font-size: 28px; font-weight: 800; color: var(--brown); line-height: 1.2; }
+.header p { font-size: 14px; color: #6B7280; margin-top: 4px; }
+
+/* ===== MODE TOGGLE ===== */
+.mode-toggle {
+  display: flex; justify-content: center; gap: 10px; margin: 14px 0 18px;
+}
+.mode-btn {
+  display: flex; align-items: center; gap: 6px;
+  padding: 10px 20px; border-radius: 30px; border: 2px solid #E5E7EB;
+  background: white; cursor: pointer; font-family: inherit;
+  font-size: 14px; font-weight: 700; color: #6B7280;
+  transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+.mode-btn:active { transform: scale(0.96); }
+.mode-btn.active {
+  border-color: var(--blue); color: var(--blue); background: var(--cool);
+  box-shadow: 0 2px 12px rgba(59,130,246,0.2);
+}
+.mode-btn .icon { font-size: 20px; }
+
+/* ===== LIST VIEW (existing) ===== */
+.node {
+  background: white; border-radius: var(--radius); padding: 14px;
+  box-shadow: var(--shadow); cursor: pointer;
+  transition: all 0.3s ease; border-left: 4px solid transparent;
+  max-width: 500px; margin: 0 auto;
+  -webkit-user-select: none; user-select: none;
+}
+.node:active { transform: scale(0.98); }
+.node.male { border-left-color: var(--blue); }
+.node.female { border-left-color: var(--pink); }
+.node.unknown { border-left-color: var(--gray); }
+.node.special {
+  border-left: none; border: 3px solid var(--gold);
+  background: linear-gradient(135deg, #FFFBEB, #FEF3C7);
+}
+.node-header { display: flex; align-items: center; gap: 12px; }
+.avatar {
+  width: 44px; height: 44px; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  color: white; font-weight: 800; font-size: 18px;
+}
+.male .avatar { background: linear-gradient(135deg, var(--blue), var(--blue-dark)); }
+.female .avatar { background: linear-gradient(135deg, var(--pink), var(--pink-dark)); }
+.unknown .avatar { background: var(--gray); }
+.special .avatar {
+  width: 56px; height: 56px; font-size: 24px;
+  box-shadow: 0 0 0 3px var(--gold), 0 4px 12px rgba(245,158,11,0.3);
+}
+.special.male .avatar { background: linear-gradient(135deg, var(--blue), var(--blue-dark)); }
+.special.female .avatar { background: linear-gradient(135deg, var(--pink), var(--pink-dark)); }
+.node-info { flex: 1; min-width: 0; }
+.node-name { font-size: 16px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.special .node-name { font-size: 20px; }
+.node-role { font-size: 12px; color: #6B7280; font-weight: 600; }
+.expand-icon {
+  width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: #F3F4F6; color: #6B7280; font-size: 14px; font-weight: 800;
+  transition: transform 0.3s ease, background 0.3s ease;
+}
+.node.expanded .expand-icon { transform: rotate(180deg); background: #DBEAFE; color: var(--blue); }
+.node.leaf .expand-icon { display: none; }
+.children {
+  max-height: 0; overflow: hidden; opacity: 0;
+  transition: max-height 0.4s ease, opacity 0.3s ease, margin 0.3s ease;
+  margin-left: 20px; margin-top: 0; border-left: 2px solid #E5E7EB; padding-left: 16px;
+}
+.children.open { max-height: 3000px; opacity: 1; margin-top: 10px; }
+.children > .tree-item { margin-bottom: 10px; }
+.children > .tree-item:last-child { margin-bottom: 0; }
+.couple-label { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.couple-label .heart { color: var(--pink); font-size: 14px; }
+.couple-label span { font-size: 11px; font-weight: 700; color: #9CA3AF; text-transform: uppercase; letter-spacing: 1px; }
+.couple-line { flex: 1; height: 1px; background: #E5E7EB; }
+.section { margin: 20px 0 12px; padding: 8px 16px; border-radius: 12px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; text-align: center; }
+.section.rodrigo { background: var(--warm); color: #92400E; }
+.section.isabela { background: var(--cool); color: #1E40AF; }
+.gen-badge { display: inline-block; padding: 2px 10px; border-radius: 8px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+.gen-badge.g0 { background: #FEF3C7; color: #92400E; }
+.gen-badge.g1 { background: #EDE9FE; color: #5B21B6; }
+.gen-badge.g2 { background: #D1FAE5; color: #065F46; }
+.gen-badge.g3 { background: #FEE2E2; color: #991B1B; }
+.gen-badge.g4 { background: #F3F4F6; color: #374151; }
+
+/* ===== FULL TREE VIEW ===== */
+#fullTree {
+  display: none; overflow-x: auto; overflow-y: visible; -webkit-overflow-scrolling: touch;
+  background: white; border-radius: 16px; box-shadow: var(--shadow);
+  padding: 20px 8px; margin: 0 -6px;
+}
+#fullTree.active { display: block; }
+#listView.hidden { display: none; }
+
+/* Inner wrapper with minimum width so nothing overlaps */
+.ft-inner {
+  min-width: 750px; padding: 0 10px;
+}
+
+/* Centered row (children + parents) */
+.ft-row {
+  display: flex; justify-content: center; align-items: flex-start;
+  margin-bottom: 8px;
+}
+
+/* Person card: bubble + name */
+.ft-card {
+  display: flex; flex-direction: column; align-items: center;
+  width: 62px; flex-shrink: 0;
+}
+.ft-av {
+  width: 34px; height: 34px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  color: white; font-weight: 800; font-size: 14px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+.ft-card.m .ft-av { background: linear-gradient(135deg, var(--blue), var(--blue-dark)); }
+.ft-card.f .ft-av { background: linear-gradient(135deg, var(--pink), var(--pink-dark)); }
+.ft-card.u .ft-av { background: var(--gray); }
+.ft-nm {
+  font-size: 8px; font-weight: 700; color: #374151;
+  text-align: center; margin-top: 2px; line-height: 1.15;
+  max-width: 62px; word-wrap: break-word; overflow-wrap: break-word;
+}
+/* Star cards (children) */
+.ft-card.star .ft-av {
+  width: 46px; height: 46px; font-size: 20px;
+  box-shadow: 0 0 0 3px var(--gold), 0 3px 10px rgba(245,158,11,0.3);
+}
+.ft-card.star .ft-nm { font-size: 12px; font-weight: 800; max-width: 80px; }
+.ft-card.star { width: 80px; }
+
+/* Parent cards (slightly bigger) */
+.ft-card.parent .ft-av { width: 40px; height: 40px; font-size: 17px; }
+.ft-card.parent .ft-nm { font-size: 10px; }
+.ft-card.parent { width: 70px; }
+
+/* Heart between couple */
+.ft-h { font-size: 7px; margin-top: 10px; flex-shrink: 0; }
+
+/* Spacer between groups */
+.ft-sp { width: 14px; flex-shrink: 0; }
+
+/* Scroll hint - only on mobile */
+.scroll-hint { display: none; }
+
+/* Connection line */
+.ft-line { display: flex; justify-content: center; margin: 2px 0; }
+.ft-line-v { width: 2px; height: 8px; background: #D1D5DB; }
+
+/* ===== SPLIT LAYOUT (50/50) ===== */
+.ft-split {
+  display: flex; margin-bottom: 8px;
+}
+.ft-half {
+  flex: 1; display: flex; justify-content: center; align-items: flex-start;
+  flex-wrap: nowrap; min-width: 0; gap: 0;
+}
+.ft-center {
+  width: 3px; flex-shrink: 0; align-self: stretch;
+  background: linear-gradient(180deg, #FBBF24, #60A5FA);
+  border-radius: 3px; margin: 0 4px; min-height: 40px;
+}
+
+/* Side labels */
+.ft-tag {
+  font-size: 9px; font-weight: 800; padding: 3px 10px;
+  border-radius: 8px; text-align: center; margin-bottom: 4px;
+}
+.ft-tag.r { background: var(--warm); color: #92400E; }
+.ft-tag.i { background: var(--cool); color: #1E40AF; }
+.ft-half-col {
+  display: flex; flex-direction: column; align-items: center;
+  flex: 1;
+}
+
+.footer { text-align: center; margin-top: 30px; padding: 16px; font-size: 12px; color: #9CA3AF; }
+
+@media (max-width: 600px) {
+  body { padding: 10px; padding-bottom: 30px; }
+  .header h1 { font-size: 22px; }
+  .node { padding: 12px; }
+  .avatar { width: 38px; height: 38px; font-size: 16px; }
+  .special .avatar { width: 48px; height: 48px; font-size: 20px; }
+  .node-name { font-size: 14px; }
+  .special .node-name { font-size: 18px; }
+  .children { margin-left: 14px; padding-left: 12px; }
+  /* Mobile: tree scrolls horizontally, no shrinking */
+  .scroll-hint {
+    display: block; text-align: center; padding: 8px;
+    font-size: 13px; color: #92400E; font-weight: 600;
+    background: var(--warm); border-radius: 10px; margin-bottom: 8px;
+  }
+}
+
+@media print {
+  .children { max-height: none !important; opacity: 1 !important; margin-top: 10px !important; }
+  .expand-icon, .mode-toggle { display: none !important; }
+  #fullTree { display: block !important; }
+  #listView { display: none !important; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>&#127795; Árvore Genealógica</h1>
+  <p>Família Théo & Duda &mdash; 5 gerações, 30 pessoas</p>
+</div>
+
+<div class="mode-toggle">
+  <button class="mode-btn active" id="btnList" onclick="switchMode('list')">
+    <span class="icon">&#128203;</span> Lista
+  </button>
+  <button class="mode-btn" id="btnTree" onclick="switchMode('tree')">
+    <span class="icon">&#127795;</span> Árvore
+  </button>
+</div>
+
+<div id="listView"></div>
+<div class="scroll-hint" id="scrollHint">&#128072; Deslize para ver toda a árvore</div>
+<div id="fullTree"></div>
+
+<div class="footer">
+  Feito com &#10084;&#65039; para Théo & Duda &mdash; Abril 2026
+</div>
+
+<script>
+const tree = {
+  children: [
+    { name: 'Théo', gender: 'M', role: 'Filho' },
+    { name: 'Duda', gender: 'F', role: 'Filha' }
+  ],
+  father: {
+    name: 'Rodrigo', gender: 'M', role: 'Papai',
+    father: {
+      name: 'Sueli', gender: 'M', role: 'Avô Paterno',
+      father: {
+        name: 'Eurípides Ferreira Lopes', gender: 'M', role: 'Bisavô',
+        father: { name: 'Limiro Ferreira Lopes', gender: 'M', role: 'Tataravô' },
+        mother: { name: 'Mariana', gender: 'F', role: 'Tataravó' }
+      },
+      mother: {
+        name: 'Porcena Diolina dos Reis', gender: 'F', role: 'Bisavó',
+        father: { name: 'José Rosa', gender: 'M', role: 'Tataravô' },
+        mother: { name: 'Diolina dos Reis', gender: 'F', role: 'Tataravó' }
+      }
+    },
+    mother: {
+      name: 'Deila', gender: 'F', role: 'Avó Paterna',
+      father: { name: 'Desconhecido', gender: 'U', role: 'Bisavô' },
+      mother: {
+        name: 'Maria do Rosário do Nascimento', gender: 'F', role: 'Bisavó',
+        father: { name: 'José Augusto Gonçalves', gender: 'M', role: 'Tataravô' },
+        mother: { name: 'Dagmar do Nascimento', gender: 'F', role: 'Tataravó' }
+      }
+    }
+  },
+  mother: {
+    name: 'Isabela', gender: 'F', role: 'Mamãe',
+    father: {
+      name: 'João Batista Luiz Pereira', gender: 'M', role: 'Avô Materno',
+      father: {
+        name: 'João Proto Pereira', gender: 'M', role: 'Bisavô',
+        father: { name: 'Artur Proto Arantes', gender: 'M', role: 'Tataravô' },
+        mother: { name: 'Ambrosina Pereira Arantes', gender: 'F', role: 'Tataravó' }
+      },
+      mother: {
+        name: 'Edsonina Luiza Pereira', gender: 'F', role: 'Bisavó',
+        father: { name: 'Oscar Luís de Mendonça', gender: 'M', role: 'Tataravô' },
+        mother: { name: 'Cornélia Rosa Arantes', gender: 'F', role: 'Tataravó' }
+      }
+    },
+    mother: {
+      name: 'Giceli', gender: 'F', role: 'Avó Materna',
+      father: {
+        name: 'Alaor Gabriel de Carvalho', gender: 'M', role: 'Bisavô',
+        father: { name: 'Andrógino Gabriel de Carvalho', gender: 'M', role: 'Tataravô' },
+        mother: { name: 'Olímpia do Carmo', gender: 'F', role: 'Tataravó' }
+      },
+      mother: {
+        name: 'Neuza Rodrigues de Carvalho', gender: 'F', role: 'Bisavó',
+        father: { name: 'Sebastião Rodrigues da Cunha', gender: 'M', role: 'Tataravô' },
+        mother: { name: 'Olímpia Batista da Cruz', gender: 'F', role: 'Tataravó' }
+      }
+    }
+  }
+};
+
+/* ===== MODE SWITCH ===== */
+function switchMode(mode) {
+  const list = document.getElementById('listView');
+  const full = document.getElementById('fullTree');
+  const btnL = document.getElementById('btnList');
+  const btnT = document.getElementById('btnTree');
+  const hint = document.getElementById('scrollHint');
+  if (mode === 'tree') {
+    list.classList.add('hidden');
+    full.classList.add('active');
+    btnT.classList.add('active');
+    btnL.classList.remove('active');
+    if (hint && window.innerWidth < 750) hint.style.display = 'block';
+  } else {
+    list.classList.remove('hidden');
+    full.classList.remove('active');
+    btnT.classList.remove('active');
+    btnL.classList.add('active');
+    if (hint) hint.style.display = 'none';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+}
+
+/* ===== LIST VIEW ===== */
+function genClass(role) {
+  if (role.includes('Filho') || role.includes('Filha')) return 'g0';
+  if (role.includes('Papai') || role.includes('Mamãe')) return 'g1';
+  if (role.startsWith('Av')) return 'g2';
+  if (role.startsWith('Bisav')) return 'g3';
+  return 'g4';
+}
+function hasP(p) { return p.father || p.mother; }
+function ini(n) { return n === 'Desconhecido' ? '?' : n.charAt(0); }
+function gc(g) { return g === 'M' ? 'male' : g === 'F' ? 'female' : 'unknown'; }
+
+function renderPerson(p) {
+  const isLeaf = !hasP(p);
+  let h = '<div class="tree-item">';
+  h += '<span class="gen-badge ' + genClass(p.role) + '">' + p.role + '</span>';
+  h += '<div class="node ' + gc(p.gender) + (isLeaf ? ' leaf' : '') + '" onclick="toggle(this)">';
+  h += '<div class="node-header"><div class="avatar">' + ini(p.name) + '</div>';
+  h += '<div class="node-info"><div class="node-name">' + p.name + '</div>';
+  h += '<div class="node-role">' + p.role + '</div></div>';
+  if (!isLeaf) h += '<div class="expand-icon">&#9660;</div>';
+  h += '</div></div>';
+  if (hasP(p)) {
+    h += '<div class="children">';
+    if (p.father && p.mother) h += '<div class="couple-label"><span class="heart">&#10084;&#65039;</span><span>Pais</span><div class="couple-line"></div></div>';
+    if (p.father) h += renderPerson(p.father);
+    if (p.mother) h += renderPerson(p.mother);
+    h += '</div>';
+  }
+  return h + '</div>';
+}
+
+function renderList() {
+  let h = '';
+  tree.children.forEach(c => {
+    h += '<div class="tree-item"><span class="gen-badge g0">' + c.role + '</span>';
+    h += '<div class="node special ' + gc(c.gender) + ' leaf"><div class="node-header">';
+    h += '<div class="avatar">' + ini(c.name) + '</div><div class="node-info">';
+    h += '<div class="node-name">&#11088; ' + c.name + '</div>';
+    h += '<div class="node-role">' + c.role + '</div></div></div></div></div>';
+  });
+  h += '<div class="couple-label" style="margin-top:16px"><span class="heart">&#10084;&#65039;</span><span>Pais do Théo e da Duda</span><div class="couple-line"></div></div>';
+  h += '<div class="section rodrigo">&#128153; Família Rodrigo</div>';
+  h += renderPerson(tree.father);
+  h += '<div class="section isabela">&#128151; Família Isabela</div>';
+  h += renderPerson(tree.mother);
+  document.getElementById('listView').innerHTML = h;
+}
+
+function toggle(node) {
+  const ch = node.parentElement.querySelector('.children');
+  if (!ch) return;
+  if (ch.classList.contains('open')) { ch.classList.remove('open'); node.classList.remove('expanded'); }
+  else { ch.classList.add('open'); node.classList.add('expanded'); setTimeout(() => ch.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 200); }
+}
+
+function autoExpand() {
+  document.querySelectorAll('.node:not(.leaf)').forEach(n => {
+    const nm = n.querySelector('.node-name')?.textContent || '';
+    if (nm === 'Rodrigo' || nm === 'Isabela') {
+      const ch = n.parentElement.querySelector('.children');
+      if (ch) { ch.classList.add('open'); n.classList.add('expanded'); }
+    }
+  });
+}
+
+/* ===== FULL TREE VIEW ===== */
+function shortName(name) {
+  if (name === 'Desconhecido') return '?';
+  const parts = name.split(' ');
+  const skip = ['de','do','da','dos','das'];
+  if (parts.length <= 2) return parts[0];
+  return parts.filter(w => !skip.includes(w.toLowerCase())).map((w,i) => i === 0 ? w : w.charAt(0) + '.').join(' ');
+}
+
+function C(p, extra) {
+  const g = p.gender === 'M' ? 'm' : p.gender === 'F' ? 'f' : 'u';
+  const cls = extra || '';
+  return '<div class="ft-card ' + g + ' ' + cls + '">' +
+    '<div class="ft-av">' + ini(p.name) + '</div>' +
+    '<div class="ft-nm">' + shortName(p.name) + '</div>' +
+  '</div>';
+}
+
+function CP(f, m, extra) {
+  return C(f, extra) + '<span class="ft-h">&#10084;&#65039;</span>' + C(m, extra);
+}
+
+function splitRow(left, right) {
+  return '<div class="ft-split">' +
+    '<div class="ft-half">' + left + '</div>' +
+    '<div class="ft-center"></div>' +
+    '<div class="ft-half">' + right + '</div>' +
+  '</div>';
+}
+
+function renderFullTree() {
+  const f = tree.father, m = tree.mother;
+  let h = '<div class="ft-inner">';
+
+  // Row 0: Children
+  h += '<div class="ft-row">' + C(tree.children[0], 'star') + '<span class="ft-sp"></span>' + C(tree.children[1], 'star') + '</div>';
+  h += '<div class="ft-line"><div class="ft-line-v"></div></div>';
+
+  // Row 1: Parents
+  h += '<div class="ft-row">' + CP(f, m, 'parent') + '</div>';
+  h += '<div class="ft-line"><div class="ft-line-v"></div></div>';
+
+  // Labels
+  h += splitRow(
+    '<span class="ft-tag r">&#128153; Família Rodrigo</span>',
+    '<span class="ft-tag i">&#128151; Família Isabela</span>'
+  );
+
+  // Row 2: Grandparents
+  h += splitRow(CP(f.father, f.mother), CP(m.father, m.mother));
+  h += '<div class="ft-line"><div class="ft-line-v"></div></div>';
+
+  // Row 3: Great-grandparents
+  h += splitRow(
+    CP(f.father.father, f.father.mother) + '<span class="ft-sp"></span>' + CP(f.mother.father, f.mother.mother),
+    CP(m.father.father, m.father.mother) + '<span class="ft-sp"></span>' + CP(m.mother.father, m.mother.mother)
+  );
+  h += '<div class="ft-line"><div class="ft-line-v"></div></div>';
+
+  // Row 4: Great-great-grandparents
+  h += splitRow(
+    CP(f.father.father.father, f.father.father.mother) + '<span class="ft-sp"></span>' +
+    CP(f.father.mother.father, f.father.mother.mother) + '<span class="ft-sp"></span>' +
+    CP(f.mother.mother.father, f.mother.mother.mother),
+    CP(m.father.father.father, m.father.father.mother) + '<span class="ft-sp"></span>' +
+    CP(m.father.mother.father, m.father.mother.mother) + '<span class="ft-sp"></span>' +
+    CP(m.mother.father.father, m.mother.father.mother) + '<span class="ft-sp"></span>' +
+    CP(m.mother.mother.father, m.mother.mother.mother)
+  );
+
+  h += '</div>'; // close ft-inner
+  document.getElementById('fullTree').innerHTML = h;
+}
+
+/* ===== INIT ===== */
+renderList();
+renderFullTree();
+setTimeout(autoExpand, 300);
+</script>
+</body>
+</html>
