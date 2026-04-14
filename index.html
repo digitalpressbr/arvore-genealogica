@@ -10,196 +10,103 @@
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 html, body { width: 100%; height: 100%; overflow: hidden; font-family: 'Nunito', sans-serif; }
-body {
-  background: linear-gradient(135deg, #FDF2F8 0%, #EFF6FF 50%, #F0FDF4 100%);
-}
+body { background: #F3F4F6; }
 
 #header {
-  position: absolute; top: 0; left: 0; right: 0; z-index: 100;
-  padding: 12px 16px; text-align: center;
-  background: rgba(255,255,255,0.92); backdrop-filter: blur(8px);
-  box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  padding: 10px 16px; text-align: center;
+  background: white; box-shadow: 0 2px 10px rgba(0,0,0,0.08);
 }
 #header h1 {
-  font-size: 22px; font-weight: 800; color: #78350F;
-  display: flex; align-items: center; justify-content: center; gap: 8px;
+  font-size: 20px; font-weight: 800; color: #78350F;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
 }
 #header p {
-  font-size: 12px; color: #6B7280; margin-top: 2px; font-weight: 600;
+  font-size: 11px; color: #6B7280; margin-top: 2px; font-weight: 600;
+}
+#header .hint {
+  display: inline-block; margin-top: 4px; padding: 3px 10px;
+  background: #FEF3C7; color: #92400E; border-radius: 10px;
+  font-size: 10px; font-weight: 700;
 }
 
-#tree {
-  width: 100%; height: 100vh;
-  padding-top: 68px;
-}
+#tree { width: 100%; height: 100vh; padding-top: 72px; background: #F3F4F6; }
 
-/* Override FamilyTree default fonts */
-.bft-text { font-family: 'Nunito', sans-serif !important; font-weight: 700 !important; }
-
-/* Legend */
-#legend {
-  position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%);
-  z-index: 100; display: flex; gap: 14px;
-  background: white; padding: 8px 16px; border-radius: 20px;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
-  font-size: 12px; font-weight: 700; color: #374151;
-}
-.lg-item { display: flex; align-items: center; gap: 5px; }
-.lg-dot {
-  width: 12px; height: 12px; border-radius: 50%; display: inline-block;
-}
-.lg-dot.m { background: linear-gradient(135deg, #3B82F6, #1E40AF); }
-.lg-dot.f { background: linear-gradient(135deg, #EC4899, #BE185D); }
-.lg-dot.c { background: linear-gradient(135deg, #F59E0B, #D97706); }
+.bft-text { font-family: 'Nunito', sans-serif !important; }
 
 @media (max-width: 600px) {
-  #header h1 { font-size: 18px; }
-  #header p { font-size: 11px; }
-  #legend { font-size: 11px; gap: 10px; padding: 6px 12px; bottom: 10px; }
+  #header h1 { font-size: 17px; }
+  #header p { font-size: 10px; }
 }
 </style>
 </head>
 <body>
 
 <div id="header">
-  <h1>🌳 Árvore Genealógica</h1>
-  <p>Família Théo &amp; Duda · 5 gerações · 30 pessoas</p>
+  <h1>🌳 Árvore Genealógica · Théo &amp; Duda</h1>
+  <p>5 gerações · 30 pessoas</p>
+  <span class="hint">👆 Arraste para mover · Pinça para zoom</span>
 </div>
 
 <div id="tree"></div>
 
-<div id="legend">
-  <div class="lg-item"><span class="lg-dot c"></span> Théo &amp; Duda</div>
-  <div class="lg-item"><span class="lg-dot m"></span> Homem</div>
-  <div class="lg-item"><span class="lg-dot f"></span> Mulher</div>
-</div>
-
 <script>
-// Custom templates with gradient colors
-FamilyTree.templates.cerrado_male = Object.assign({}, FamilyTree.templates.hugo);
-FamilyTree.templates.cerrado_male.size = [180, 110];
-FamilyTree.templates.cerrado_male.node =
-  '<rect x="0" y="0" width="180" height="110" rx="14" ry="14" fill="#FFFFFF" stroke="#3B82F6" stroke-width="3" filter="url(#shadow)"></rect>' +
-  '<rect x="0" y="0" width="180" height="34" rx="14" ry="14" fill="url(#gradMale)"></rect>' +
-  '<rect x="0" y="20" width="180" height="14" fill="url(#gradMale)"></rect>';
-
-FamilyTree.templates.cerrado_female = Object.assign({}, FamilyTree.templates.hugo);
-FamilyTree.templates.cerrado_female.size = [180, 110];
-FamilyTree.templates.cerrado_female.node =
-  '<rect x="0" y="0" width="180" height="110" rx="14" ry="14" fill="#FFFFFF" stroke="#EC4899" stroke-width="3" filter="url(#shadow)"></rect>' +
-  '<rect x="0" y="0" width="180" height="34" rx="14" ry="14" fill="url(#gradFemale)"></rect>' +
-  '<rect x="0" y="20" width="180" height="14" fill="url(#gradFemale)"></rect>';
-
-FamilyTree.templates.cerrado_unknown = Object.assign({}, FamilyTree.templates.hugo);
-FamilyTree.templates.cerrado_unknown.size = [180, 110];
-FamilyTree.templates.cerrado_unknown.node =
-  '<rect x="0" y="0" width="180" height="110" rx="14" ry="14" fill="#FFFFFF" stroke="#9CA3AF" stroke-width="3" stroke-dasharray="5,3" filter="url(#shadow)"></rect>' +
-  '<rect x="0" y="0" width="180" height="34" rx="14" ry="14" fill="url(#gradUnk)"></rect>';
-
-FamilyTree.templates.cerrado_child = Object.assign({}, FamilyTree.templates.hugo);
-FamilyTree.templates.cerrado_child.size = [190, 120];
-FamilyTree.templates.cerrado_child.node =
-  '<rect x="0" y="0" width="190" height="120" rx="16" ry="16" fill="#FFFBEB" stroke="#F59E0B" stroke-width="4" filter="url(#shadow)"></rect>' +
-  '<rect x="0" y="0" width="190" height="38" rx="16" ry="16" fill="url(#gradChild)"></rect>' +
-  '<rect x="0" y="22" width="190" height="16" fill="url(#gradChild)"></rect>';
-
-// Custom field binding
-['cerrado_male', 'cerrado_female', 'cerrado_unknown', 'cerrado_child'].forEach(function(t) {
-  var isChild = t === 'cerrado_child';
-  var w = isChild ? 190 : 180;
-  var h = isChild ? 120 : 110;
-  FamilyTree.templates[t].field_0 =
-    '<text class="bft-text" style="font-size:15px;font-weight:800;fill:#FFFFFF" x="' + (w/2) + '" y="22" text-anchor="middle">{val}</text>';
-  FamilyTree.templates[t].field_1 =
-    '<text class="bft-text" style="font-size:12px;font-weight:600;fill:#6B7280" x="' + (w/2) + '" y="58" text-anchor="middle">{val}</text>';
-  FamilyTree.templates[t].field_2 =
-    '<text class="bft-text" style="font-size:10px;font-weight:500;fill:#9CA3AF" x="' + (w/2) + '" y="' + (h - 12) + '" text-anchor="middle">{val}</text>';
-});
-
-// SVG defs for gradients
-FamilyTree.templates.cerrado_male.defs =
-  '<defs>' +
-  '<linearGradient id="gradMale" x1="0%" y1="0%" x2="100%" y2="100%">' +
-    '<stop offset="0%" style="stop-color:#3B82F6"/>' +
-    '<stop offset="100%" style="stop-color:#1E40AF"/>' +
-  '</linearGradient>' +
-  '<linearGradient id="gradFemale" x1="0%" y1="0%" x2="100%" y2="100%">' +
-    '<stop offset="0%" style="stop-color:#EC4899"/>' +
-    '<stop offset="100%" style="stop-color:#BE185D"/>' +
-  '</linearGradient>' +
-  '<linearGradient id="gradChild" x1="0%" y1="0%" x2="100%" y2="100%">' +
-    '<stop offset="0%" style="stop-color:#F59E0B"/>' +
-    '<stop offset="100%" style="stop-color:#D97706"/>' +
-  '</linearGradient>' +
-  '<linearGradient id="gradUnk" x1="0%" y1="0%" x2="100%" y2="100%">' +
-    '<stop offset="0%" style="stop-color:#9CA3AF"/>' +
-    '<stop offset="100%" style="stop-color:#6B7280"/>' +
-  '</linearGradient>' +
-  '<filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">' +
-    '<feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#000" flood-opacity="0.15"/>' +
-  '</filter>' +
-  '</defs>';
-
-// Family data
+// Family data - oldest ancestors first, going down to Théo and Duda
 var nodes = [
-  // Gen 0: Children
-  { id: 1, name: 'Théo', role: 'Filho', gen: '⭐ 5ª geração', fid: 3, mid: 4, template: 'cerrado_child' },
-  { id: 2, name: 'Duda', role: 'Filha', gen: '⭐ 5ª geração', fid: 3, mid: 4, template: 'cerrado_child' },
+  // ===== GEN 4: TATARAVÓS (top) =====
+  { id: 'limiro', name: 'Limiro Ferreira Lopes', gen: 'Tataravô', gender: 'male', pids: ['mariana'] },
+  { id: 'mariana', name: 'Mariana', gen: 'Tataravó', gender: 'female', pids: ['limiro'] },
+  { id: 'jose_rosa', name: 'José Rosa', gen: 'Tataravô', gender: 'male', pids: ['diolina'] },
+  { id: 'diolina', name: 'Diolina dos Reis', gen: 'Tataravó', gender: 'female', pids: ['jose_rosa'] },
+  { id: 'jose_augusto', name: 'José Augusto Gonçalves', gen: 'Tataravô', gender: 'male', pids: ['dagmar'] },
+  { id: 'dagmar', name: 'Dagmar do Nascimento', gen: 'Tataravó', gender: 'female', pids: ['jose_augusto'] },
+  { id: 'artur', name: 'Artur Proto Arantes', gen: 'Tataravô', gender: 'male', pids: ['ambrosina'] },
+  { id: 'ambrosina', name: 'Ambrosina Pereira Arantes', gen: 'Tataravó', gender: 'female', pids: ['artur'] },
+  { id: 'oscar', name: 'Oscar Luís de Mendonça', gen: 'Tataravô', gender: 'male', pids: ['cornelia'] },
+  { id: 'cornelia', name: 'Cornélia Rosa Arantes', gen: 'Tataravó', gender: 'female', pids: ['oscar'] },
+  { id: 'androgino', name: 'Andrógino G. de Carvalho', gen: 'Tataravô', gender: 'male', pids: ['olimpia_carmo'] },
+  { id: 'olimpia_carmo', name: 'Olímpia do Carmo', gen: 'Tataravó', gender: 'female', pids: ['androgino'] },
+  { id: 'sebastiao', name: 'Sebastião R. da Cunha', gen: 'Tataravô', gender: 'male', pids: ['olimpia_cruz'] },
+  { id: 'olimpia_cruz', name: 'Olímpia Batista da Cruz', gen: 'Tataravó', gender: 'female', pids: ['sebastiao'] },
 
-  // Gen 1: Parents
-  { id: 3, name: 'Rodrigo', role: 'Papai', gen: '4ª geração', pids: [4], fid: 5, mid: 6, template: 'cerrado_male' },
-  { id: 4, name: 'Isabela', role: 'Mamãe', gen: '4ª geração', pids: [3], fid: 7, mid: 8, template: 'cerrado_female' },
+  // ===== GEN 3: BISAVÓS =====
+  { id: 'euripides', name: 'Eurípides Ferreira Lopes', gen: 'Bisavô', gender: 'male', pids: ['porcena'], fid: 'limiro', mid: 'mariana' },
+  { id: 'porcena', name: 'Porcena Diolina dos Reis', gen: 'Bisavó', gender: 'female', pids: ['euripides'], fid: 'jose_rosa', mid: 'diolina' },
+  { id: 'desconhecido', name: 'Desconhecido', gen: 'Bisavô', gender: 'male', pids: ['maria_rosario'] },
+  { id: 'maria_rosario', name: 'Maria do Rosário do Nascimento', gen: 'Bisavó', gender: 'female', pids: ['desconhecido'], fid: 'jose_augusto', mid: 'dagmar' },
+  { id: 'joao_proto', name: 'João Proto Pereira', gen: 'Bisavô', gender: 'male', pids: ['edsonina'], fid: 'artur', mid: 'ambrosina' },
+  { id: 'edsonina', name: 'Edsonina Luiza Pereira', gen: 'Bisavó', gender: 'female', pids: ['joao_proto'], fid: 'oscar', mid: 'cornelia' },
+  { id: 'alaor', name: 'Alaor Gabriel de Carvalho', gen: 'Bisavô', gender: 'male', pids: ['neuza'], fid: 'androgino', mid: 'olimpia_carmo' },
+  { id: 'neuza', name: 'Neuza Rodrigues de Carvalho', gen: 'Bisavó', gender: 'female', pids: ['alaor'], fid: 'sebastiao', mid: 'olimpia_cruz' },
 
-  // Gen 2: Grandparents
-  { id: 5, name: 'Sueli', role: 'Avô Paterno', gen: '3ª geração', pids: [6], fid: 9, mid: 10, template: 'cerrado_male' },
-  { id: 6, name: 'Deila', role: 'Avó Paterna', gen: '3ª geração', pids: [5], fid: 11, mid: 12, template: 'cerrado_female' },
-  { id: 7, name: 'João Batista Luiz Pereira', role: 'Avô Materno', gen: '3ª geração', pids: [8], fid: 13, mid: 14, template: 'cerrado_male' },
-  { id: 8, name: 'Giceli', role: 'Avó Materna', gen: '3ª geração', pids: [7], fid: 15, mid: 16, template: 'cerrado_female' },
+  // ===== GEN 2: AVÓS =====
+  { id: 'sueli', name: 'Sueli', gen: 'Avô Paterno', gender: 'male', pids: ['deila'], fid: 'euripides', mid: 'porcena' },
+  { id: 'deila', name: 'Deila', gen: 'Avó Paterna', gender: 'female', pids: ['sueli'], fid: 'desconhecido', mid: 'maria_rosario' },
+  { id: 'joao_batista', name: 'João Batista Luiz Pereira', gen: 'Avô Materno', gender: 'male', pids: ['giceli'], fid: 'joao_proto', mid: 'edsonina' },
+  { id: 'giceli', name: 'Giceli', gen: 'Avó Materna', gender: 'female', pids: ['joao_batista'], fid: 'alaor', mid: 'neuza' },
 
-  // Gen 3: Great-grandparents
-  { id: 9, name: 'Eurípides Ferreira Lopes', role: 'Bisavô', gen: '2ª geração', pids: [10], fid: 17, mid: 18, template: 'cerrado_male' },
-  { id: 10, name: 'Porcena Diolina dos Reis', role: 'Bisavó', gen: '2ª geração', pids: [9], fid: 19, mid: 20, template: 'cerrado_female' },
-  { id: 11, name: 'Desconhecido', role: 'Bisavô', gen: '2ª geração', pids: [12], template: 'cerrado_unknown' },
-  { id: 12, name: 'Maria do Rosário do Nascimento', role: 'Bisavó', gen: '2ª geração', pids: [11], fid: 21, mid: 22, template: 'cerrado_female' },
-  { id: 13, name: 'João Proto Pereira', role: 'Bisavô', gen: '2ª geração', pids: [14], fid: 23, mid: 24, template: 'cerrado_male' },
-  { id: 14, name: 'Edsonina Luiza Pereira', role: 'Bisavó', gen: '2ª geração', pids: [13], fid: 25, mid: 26, template: 'cerrado_female' },
-  { id: 15, name: 'Alaor Gabriel de Carvalho', role: 'Bisavô', gen: '2ª geração', pids: [16], fid: 27, mid: 28, template: 'cerrado_male' },
-  { id: 16, name: 'Neuza Rodrigues de Carvalho', role: 'Bisavó', gen: '2ª geração', pids: [15], fid: 29, mid: 30, template: 'cerrado_female' },
+  // ===== GEN 1: PAIS =====
+  { id: 'rodrigo', name: 'Rodrigo', gen: 'Papai', gender: 'male', pids: ['isabela'], fid: 'sueli', mid: 'deila' },
+  { id: 'isabela', name: 'Isabela', gen: 'Mamãe', gender: 'female', pids: ['rodrigo'], fid: 'joao_batista', mid: 'giceli' },
 
-  // Gen 4: Great-great-grandparents
-  { id: 17, name: 'Limiro Ferreira Lopes', role: 'Tataravô', gen: '1ª geração', pids: [18], template: 'cerrado_male' },
-  { id: 18, name: 'Mariana', role: 'Tataravó', gen: '1ª geração', pids: [17], template: 'cerrado_female' },
-  { id: 19, name: 'José Rosa', role: 'Tataravô', gen: '1ª geração', pids: [20], template: 'cerrado_male' },
-  { id: 20, name: 'Diolina dos Reis', role: 'Tataravó', gen: '1ª geração', pids: [19], template: 'cerrado_female' },
-  { id: 21, name: 'José Augusto Gonçalves', role: 'Tataravô', gen: '1ª geração', pids: [22], template: 'cerrado_male' },
-  { id: 22, name: 'Dagmar do Nascimento', role: 'Tataravó', gen: '1ª geração', pids: [21], template: 'cerrado_female' },
-  { id: 23, name: 'Artur Proto Arantes', role: 'Tataravô', gen: '1ª geração', pids: [24], template: 'cerrado_male' },
-  { id: 24, name: 'Ambrosina Pereira Arantes', role: 'Tataravó', gen: '1ª geração', pids: [23], template: 'cerrado_female' },
-  { id: 25, name: 'Oscar Luís de Mendonça', role: 'Tataravô', gen: '1ª geração', pids: [26], template: 'cerrado_male' },
-  { id: 26, name: 'Cornélia Rosa Arantes', role: 'Tataravó', gen: '1ª geração', pids: [25], template: 'cerrado_female' },
-  { id: 27, name: 'Andrógino Gabriel de Carvalho', role: 'Tataravô', gen: '1ª geração', pids: [28], template: 'cerrado_male' },
-  { id: 28, name: 'Olímpia do Carmo', role: 'Tataravó', gen: '1ª geração', pids: [27], template: 'cerrado_female' },
-  { id: 29, name: 'Sebastião Rodrigues da Cunha', role: 'Tataravô', gen: '1ª geração', pids: [30], template: 'cerrado_male' },
-  { id: 30, name: 'Olímpia Batista da Cruz', role: 'Tataravó', gen: '1ª geração', pids: [29], template: 'cerrado_female' }
+  // ===== GEN 0: FILHOS =====
+  { id: 'theo', name: 'Théo', gen: '⭐ Filho', gender: 'male', fid: 'rodrigo', mid: 'isabela' },
+  { id: 'duda', name: 'Duda', gen: '⭐ Filha', gender: 'female', fid: 'rodrigo', mid: 'isabela' }
 ];
 
-// Initialize the tree
 var family = new FamilyTree(document.getElementById('tree'), {
-  template: 'cerrado_male',
+  template: 'hugo',
   mode: 'light',
-  roots: [1, 2],
   mouseScrool: FamilyTree.action.zoom,
   nodeMouseClick: FamilyTree.action.details,
+  enableSearch: true,
   nodeBinding: {
     field_0: 'name',
-    field_1: 'role',
-    field_2: 'gen'
+    field_1: 'gen'
   },
   nodes: nodes,
-  nodeMenu: {
-    details: { text: 'Ver detalhes' }
-  },
   toolbar: {
+    layout: false,
     zoom: true,
     fit: true,
     expandAll: true,
@@ -207,14 +114,20 @@ var family = new FamilyTree(document.getElementById('tree'), {
   },
   connectors: {
     type: 'step',
-    color: '#8D6E63',
+    color: '#6B7280',
     'stroke-width': 2
   },
-  padding: 30,
-  orientation: FamilyTree.orientation.bottom,
-  levelSeparation: 60,
-  siblingSeparation: 20,
-  subtreeSeparation: 40
+  padding: 40,
+  levelSeparation: 100,
+  siblingSeparation: 30,
+  subtreeSeparation: 50
+});
+
+family.on('init', function() {
+  // Center on Théo and Duda after initial render
+  setTimeout(function() {
+    family.center('theo');
+  }, 300);
 });
 </script>
 
