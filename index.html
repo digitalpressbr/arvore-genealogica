@@ -2,606 +2,221 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Árvore Genealógica - Théo & Duda</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://balkan.app/js/familytree.js"></script>
 <style>
-:root {
-  --blue: #3B82F6; --blue-dark: #1E40AF;
-  --pink: #EC4899; --pink-dark: #BE185D;
-  --gray: #9CA3AF;
-  --brown: #78350F; --warm: #FEF3C7; --cool: #EFF6FF;
-  --gold: #F59E0B;
-  --radius: 16px;
-  --shadow: 0 4px 20px rgba(0,0,0,0.1);
-}
-* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
-html { scroll-behavior: smooth; }
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { width: 100%; height: 100%; overflow: hidden; font-family: 'Nunito', sans-serif; }
 body {
-  font-family: 'Nunito', sans-serif;
   background: linear-gradient(135deg, #FDF2F8 0%, #EFF6FF 50%, #F0FDF4 100%);
-  min-height: 100vh; color: #1F2937;
-  padding: 16px; padding-bottom: 40px;
 }
 
-/* ===== HEADER ===== */
-.header { text-align: center; padding: 20px 0 10px; }
-.header h1 { font-size: 28px; font-weight: 800; color: var(--brown); line-height: 1.2; }
-.header p { font-size: 14px; color: #6B7280; margin-top: 4px; }
+#header {
+  position: absolute; top: 0; left: 0; right: 0; z-index: 100;
+  padding: 12px 16px; text-align: center;
+  background: rgba(255,255,255,0.92); backdrop-filter: blur(8px);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+}
+#header h1 {
+  font-size: 22px; font-weight: 800; color: #78350F;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+#header p {
+  font-size: 12px; color: #6B7280; margin-top: 2px; font-weight: 600;
+}
 
-/* ===== MODE TOGGLE ===== */
-.mode-toggle {
-  display: flex; justify-content: center; gap: 10px; margin: 14px 0 18px;
+#tree {
+  width: 100%; height: 100vh;
+  padding-top: 68px;
 }
-.mode-btn {
-  display: flex; align-items: center; gap: 6px;
-  padding: 10px 20px; border-radius: 30px; border: 2px solid #E5E7EB;
-  background: white; cursor: pointer; font-family: inherit;
-  font-size: 14px; font-weight: 700; color: #6B7280;
-  transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-}
-.mode-btn:active { transform: scale(0.96); }
-.mode-btn.active {
-  border-color: var(--blue); color: var(--blue); background: var(--cool);
-  box-shadow: 0 2px 12px rgba(59,130,246,0.2);
-}
-.mode-btn .icon { font-size: 20px; }
 
-/* ===== LIST VIEW (existing) ===== */
-.node {
-  background: white; border-radius: var(--radius); padding: 14px;
-  box-shadow: var(--shadow); cursor: pointer;
-  transition: all 0.3s ease; border-left: 4px solid transparent;
-  max-width: 500px; margin: 0 auto;
-  -webkit-user-select: none; user-select: none;
-}
-.node:active { transform: scale(0.98); }
-.node.male { border-left-color: var(--blue); }
-.node.female { border-left-color: var(--pink); }
-.node.unknown { border-left-color: var(--gray); }
-.node.special {
-  border-left: none; border: 3px solid var(--gold);
-  background: linear-gradient(135deg, #FFFBEB, #FEF3C7);
-}
-.node-header { display: flex; align-items: center; gap: 12px; }
-.avatar {
-  width: 44px; height: 44px; border-radius: 50%; flex-shrink: 0;
-  display: flex; align-items: center; justify-content: center;
-  color: white; font-weight: 800; font-size: 18px;
-}
-.male .avatar { background: linear-gradient(135deg, var(--blue), var(--blue-dark)); }
-.female .avatar { background: linear-gradient(135deg, var(--pink), var(--pink-dark)); }
-.unknown .avatar { background: var(--gray); }
-.special .avatar {
-  width: 56px; height: 56px; font-size: 24px;
-  box-shadow: 0 0 0 3px var(--gold), 0 4px 12px rgba(245,158,11,0.3);
-}
-.special.male .avatar { background: linear-gradient(135deg, var(--blue), var(--blue-dark)); }
-.special.female .avatar { background: linear-gradient(135deg, var(--pink), var(--pink-dark)); }
-.node-info { flex: 1; min-width: 0; }
-.node-name { font-size: 16px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.special .node-name { font-size: 20px; }
-.node-role { font-size: 12px; color: #6B7280; font-weight: 600; }
-.expand-icon {
-  width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
-  display: flex; align-items: center; justify-content: center;
-  background: #F3F4F6; color: #6B7280; font-size: 14px; font-weight: 800;
-  transition: transform 0.3s ease, background 0.3s ease;
-}
-.node.expanded .expand-icon { transform: rotate(180deg); background: #DBEAFE; color: var(--blue); }
-.node.leaf .expand-icon { display: none; }
-.children {
-  max-height: 0; overflow: hidden; opacity: 0;
-  transition: max-height 0.4s ease, opacity 0.3s ease, margin 0.3s ease;
-  margin-left: 20px; margin-top: 0; border-left: 2px solid #E5E7EB; padding-left: 16px;
-}
-.children.open { max-height: 3000px; opacity: 1; margin-top: 10px; }
-.children > .tree-item { margin-bottom: 10px; }
-.children > .tree-item:last-child { margin-bottom: 0; }
-.couple-label { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
-.couple-label .heart { color: var(--pink); font-size: 14px; }
-.couple-label span { font-size: 11px; font-weight: 700; color: #9CA3AF; text-transform: uppercase; letter-spacing: 1px; }
-.couple-line { flex: 1; height: 1px; background: #E5E7EB; }
-.section { margin: 20px 0 12px; padding: 8px 16px; border-radius: 12px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; text-align: center; }
-.section.rodrigo { background: var(--warm); color: #92400E; }
-.section.isabela { background: var(--cool); color: #1E40AF; }
-.gen-badge { display: inline-block; padding: 2px 10px; border-radius: 8px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
-.gen-badge.g0 { background: #FEF3C7; color: #92400E; }
-.gen-badge.g1 { background: #EDE9FE; color: #5B21B6; }
-.gen-badge.g2 { background: #D1FAE5; color: #065F46; }
-.gen-badge.g3 { background: #FEE2E2; color: #991B1B; }
-.gen-badge.g4 { background: #F3F4F6; color: #374151; }
+/* Override FamilyTree default fonts */
+.bft-text { font-family: 'Nunito', sans-serif !important; font-weight: 700 !important; }
 
-/* ===== FULL TREE VIEW (SVG) ===== */
-#fullTree {
-  display: none; overflow-x: auto; overflow-y: visible; -webkit-overflow-scrolling: touch;
-  background: white; border-radius: 16px; box-shadow: var(--shadow);
-  padding: 20px 8px; margin: 0 -6px;
+/* Legend */
+#legend {
+  position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%);
+  z-index: 100; display: flex; gap: 14px;
+  background: white; padding: 8px 16px; border-radius: 20px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+  font-size: 12px; font-weight: 700; color: #374151;
 }
-#fullTree.active { display: block; }
-#listView.hidden { display: none; }
-
-/* Scroll hint - only on mobile */
-.scroll-hint { display: none; }
-
-.footer { text-align: center; margin-top: 30px; padding: 16px; font-size: 12px; color: #9CA3AF; }
+.lg-item { display: flex; align-items: center; gap: 5px; }
+.lg-dot {
+  width: 12px; height: 12px; border-radius: 50%; display: inline-block;
+}
+.lg-dot.m { background: linear-gradient(135deg, #3B82F6, #1E40AF); }
+.lg-dot.f { background: linear-gradient(135deg, #EC4899, #BE185D); }
+.lg-dot.c { background: linear-gradient(135deg, #F59E0B, #D97706); }
 
 @media (max-width: 600px) {
-  body { padding: 10px; padding-bottom: 30px; }
-  .header h1 { font-size: 22px; }
-  .node { padding: 12px; }
-  .avatar { width: 38px; height: 38px; font-size: 16px; }
-  .special .avatar { width: 48px; height: 48px; font-size: 20px; }
-  .node-name { font-size: 14px; }
-  .special .node-name { font-size: 18px; }
-  .children { margin-left: 14px; padding-left: 12px; }
-  /* Mobile: tree scrolls horizontally, no shrinking */
-  .scroll-hint {
-    display: block; text-align: center; padding: 8px;
-    font-size: 13px; color: #92400E; font-weight: 600;
-    background: var(--warm); border-radius: 10px; margin-bottom: 8px;
-  }
-}
-
-@media print {
-  .children { max-height: none !important; opacity: 1 !important; margin-top: 10px !important; }
-  .expand-icon, .mode-toggle { display: none !important; }
-  #fullTree { display: block !important; }
-  #listView { display: none !important; }
+  #header h1 { font-size: 18px; }
+  #header p { font-size: 11px; }
+  #legend { font-size: 11px; gap: 10px; padding: 6px 12px; bottom: 10px; }
 }
 </style>
 </head>
 <body>
 
-<div class="header">
-  <h1>&#127795; Árvore Genealógica</h1>
-  <p>Família Théo & Duda &mdash; 5 gerações, 30 pessoas</p>
+<div id="header">
+  <h1>🌳 Árvore Genealógica</h1>
+  <p>Família Théo &amp; Duda · 5 gerações · 30 pessoas</p>
 </div>
 
-<div class="mode-toggle">
-  <button class="mode-btn active" id="btnList" onclick="switchMode('list')">
-    <span class="icon">&#128203;</span> Lista
-  </button>
-  <button class="mode-btn" id="btnTree" onclick="switchMode('tree')">
-    <span class="icon">&#127795;</span> Árvore
-  </button>
-</div>
+<div id="tree"></div>
 
-<div id="listView"></div>
-<div class="scroll-hint" id="scrollHint">&#128072; Deslize para ver toda a árvore</div>
-<div id="fullTree"></div>
-
-<div class="footer">
-  Feito com &#10084;&#65039; para Théo & Duda &mdash; Abril 2026
+<div id="legend">
+  <div class="lg-item"><span class="lg-dot c"></span> Théo &amp; Duda</div>
+  <div class="lg-item"><span class="lg-dot m"></span> Homem</div>
+  <div class="lg-item"><span class="lg-dot f"></span> Mulher</div>
 </div>
 
 <script>
-const tree = {
-  children: [
-    { name: 'Théo', gender: 'M', role: 'Filho' },
-    { name: 'Duda', gender: 'F', role: 'Filha' }
-  ],
-  father: {
-    name: 'Rodrigo', gender: 'M', role: 'Papai',
-    father: {
-      name: 'Sueli', gender: 'M', role: 'Avô Paterno',
-      father: {
-        name: 'Eurípides Ferreira Lopes', gender: 'M', role: 'Bisavô',
-        father: { name: 'Limiro Ferreira Lopes', gender: 'M', role: 'Tataravô' },
-        mother: { name: 'Mariana', gender: 'F', role: 'Tataravó' }
-      },
-      mother: {
-        name: 'Porcena Diolina dos Reis', gender: 'F', role: 'Bisavó',
-        father: { name: 'José Rosa', gender: 'M', role: 'Tataravô' },
-        mother: { name: 'Diolina dos Reis', gender: 'F', role: 'Tataravó' }
-      }
-    },
-    mother: {
-      name: 'Deila', gender: 'F', role: 'Avó Paterna',
-      father: { name: 'Desconhecido', gender: 'U', role: 'Bisavô' },
-      mother: {
-        name: 'Maria do Rosário do Nascimento', gender: 'F', role: 'Bisavó',
-        father: { name: 'José Augusto Gonçalves', gender: 'M', role: 'Tataravô' },
-        mother: { name: 'Dagmar do Nascimento', gender: 'F', role: 'Tataravó' }
-      }
-    }
-  },
-  mother: {
-    name: 'Isabela', gender: 'F', role: 'Mamãe',
-    father: {
-      name: 'João Batista Luiz Pereira', gender: 'M', role: 'Avô Materno',
-      father: {
-        name: 'João Proto Pereira', gender: 'M', role: 'Bisavô',
-        father: { name: 'Artur Proto Arantes', gender: 'M', role: 'Tataravô' },
-        mother: { name: 'Ambrosina Pereira Arantes', gender: 'F', role: 'Tataravó' }
-      },
-      mother: {
-        name: 'Edsonina Luiza Pereira', gender: 'F', role: 'Bisavó',
-        father: { name: 'Oscar Luís de Mendonça', gender: 'M', role: 'Tataravô' },
-        mother: { name: 'Cornélia Rosa Arantes', gender: 'F', role: 'Tataravó' }
-      }
-    },
-    mother: {
-      name: 'Giceli', gender: 'F', role: 'Avó Materna',
-      father: {
-        name: 'Alaor Gabriel de Carvalho', gender: 'M', role: 'Bisavô',
-        father: { name: 'Andrógino Gabriel de Carvalho', gender: 'M', role: 'Tataravô' },
-        mother: { name: 'Olímpia do Carmo', gender: 'F', role: 'Tataravó' }
-      },
-      mother: {
-        name: 'Neuza Rodrigues de Carvalho', gender: 'F', role: 'Bisavó',
-        father: { name: 'Sebastião Rodrigues da Cunha', gender: 'M', role: 'Tataravô' },
-        mother: { name: 'Olímpia Batista da Cruz', gender: 'F', role: 'Tataravó' }
-      }
-    }
-  }
-};
+// Custom templates with gradient colors
+FamilyTree.templates.cerrado_male = Object.assign({}, FamilyTree.templates.hugo);
+FamilyTree.templates.cerrado_male.size = [180, 110];
+FamilyTree.templates.cerrado_male.node =
+  '<rect x="0" y="0" width="180" height="110" rx="14" ry="14" fill="#FFFFFF" stroke="#3B82F6" stroke-width="3" filter="url(#shadow)"></rect>' +
+  '<rect x="0" y="0" width="180" height="34" rx="14" ry="14" fill="url(#gradMale)"></rect>' +
+  '<rect x="0" y="20" width="180" height="14" fill="url(#gradMale)"></rect>';
 
-/* ===== MODE SWITCH ===== */
-function switchMode(mode) {
-  const list = document.getElementById('listView');
-  const full = document.getElementById('fullTree');
-  const btnL = document.getElementById('btnList');
-  const btnT = document.getElementById('btnTree');
-  const hint = document.getElementById('scrollHint');
-  if (mode === 'tree') {
-    list.classList.add('hidden');
-    full.classList.add('active');
-    btnT.classList.add('active');
-    btnL.classList.remove('active');
-    if (hint && window.innerWidth < 750) hint.style.display = 'block';
-  } else {
-    list.classList.remove('hidden');
-    full.classList.remove('active');
-    btnT.classList.remove('active');
-    btnL.classList.add('active');
-    if (hint) hint.style.display = 'none';
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
-}
+FamilyTree.templates.cerrado_female = Object.assign({}, FamilyTree.templates.hugo);
+FamilyTree.templates.cerrado_female.size = [180, 110];
+FamilyTree.templates.cerrado_female.node =
+  '<rect x="0" y="0" width="180" height="110" rx="14" ry="14" fill="#FFFFFF" stroke="#EC4899" stroke-width="3" filter="url(#shadow)"></rect>' +
+  '<rect x="0" y="0" width="180" height="34" rx="14" ry="14" fill="url(#gradFemale)"></rect>' +
+  '<rect x="0" y="20" width="180" height="14" fill="url(#gradFemale)"></rect>';
 
-/* ===== LIST VIEW ===== */
-function genClass(role) {
-  if (role.includes('Filho') || role.includes('Filha')) return 'g0';
-  if (role.includes('Papai') || role.includes('Mamãe')) return 'g1';
-  if (role.startsWith('Av')) return 'g2';
-  if (role.startsWith('Bisav')) return 'g3';
-  return 'g4';
-}
-function hasP(p) { return p.father || p.mother; }
-function ini(n) { return n === 'Desconhecido' ? '?' : n.charAt(0); }
-function gc(g) { return g === 'M' ? 'male' : g === 'F' ? 'female' : 'unknown'; }
+FamilyTree.templates.cerrado_unknown = Object.assign({}, FamilyTree.templates.hugo);
+FamilyTree.templates.cerrado_unknown.size = [180, 110];
+FamilyTree.templates.cerrado_unknown.node =
+  '<rect x="0" y="0" width="180" height="110" rx="14" ry="14" fill="#FFFFFF" stroke="#9CA3AF" stroke-width="3" stroke-dasharray="5,3" filter="url(#shadow)"></rect>' +
+  '<rect x="0" y="0" width="180" height="34" rx="14" ry="14" fill="url(#gradUnk)"></rect>';
 
-function renderPerson(p) {
-  const isLeaf = !hasP(p);
-  let h = '<div class="tree-item">';
-  h += '<span class="gen-badge ' + genClass(p.role) + '">' + p.role + '</span>';
-  h += '<div class="node ' + gc(p.gender) + (isLeaf ? ' leaf' : '') + '" onclick="toggle(this)">';
-  h += '<div class="node-header"><div class="avatar">' + ini(p.name) + '</div>';
-  h += '<div class="node-info"><div class="node-name">' + p.name + '</div>';
-  h += '<div class="node-role">' + p.role + '</div></div>';
-  if (!isLeaf) h += '<div class="expand-icon">&#9660;</div>';
-  h += '</div></div>';
-  if (hasP(p)) {
-    h += '<div class="children">';
-    if (p.father && p.mother) h += '<div class="couple-label"><span class="heart">&#10084;&#65039;</span><span>Pais</span><div class="couple-line"></div></div>';
-    if (p.father) h += renderPerson(p.father);
-    if (p.mother) h += renderPerson(p.mother);
-    h += '</div>';
-  }
-  return h + '</div>';
-}
+FamilyTree.templates.cerrado_child = Object.assign({}, FamilyTree.templates.hugo);
+FamilyTree.templates.cerrado_child.size = [190, 120];
+FamilyTree.templates.cerrado_child.node =
+  '<rect x="0" y="0" width="190" height="120" rx="16" ry="16" fill="#FFFBEB" stroke="#F59E0B" stroke-width="4" filter="url(#shadow)"></rect>' +
+  '<rect x="0" y="0" width="190" height="38" rx="16" ry="16" fill="url(#gradChild)"></rect>' +
+  '<rect x="0" y="22" width="190" height="16" fill="url(#gradChild)"></rect>';
 
-function renderList() {
-  let h = '';
-  tree.children.forEach(c => {
-    h += '<div class="tree-item"><span class="gen-badge g0">' + c.role + '</span>';
-    h += '<div class="node special ' + gc(c.gender) + ' leaf"><div class="node-header">';
-    h += '<div class="avatar">' + ini(c.name) + '</div><div class="node-info">';
-    h += '<div class="node-name">&#11088; ' + c.name + '</div>';
-    h += '<div class="node-role">' + c.role + '</div></div></div></div></div>';
-  });
-  h += '<div class="couple-label" style="margin-top:16px"><span class="heart">&#10084;&#65039;</span><span>Pais do Théo e da Duda</span><div class="couple-line"></div></div>';
-  h += '<div class="section rodrigo">&#128153; Família Rodrigo</div>';
-  h += renderPerson(tree.father);
-  h += '<div class="section isabela">&#128151; Família Isabela</div>';
-  h += renderPerson(tree.mother);
-  document.getElementById('listView').innerHTML = h;
-}
+// Custom field binding
+['cerrado_male', 'cerrado_female', 'cerrado_unknown', 'cerrado_child'].forEach(function(t) {
+  var isChild = t === 'cerrado_child';
+  var w = isChild ? 190 : 180;
+  var h = isChild ? 120 : 110;
+  FamilyTree.templates[t].field_0 =
+    '<text class="bft-text" style="font-size:15px;font-weight:800;fill:#FFFFFF" x="' + (w/2) + '" y="22" text-anchor="middle">{val}</text>';
+  FamilyTree.templates[t].field_1 =
+    '<text class="bft-text" style="font-size:12px;font-weight:600;fill:#6B7280" x="' + (w/2) + '" y="58" text-anchor="middle">{val}</text>';
+  FamilyTree.templates[t].field_2 =
+    '<text class="bft-text" style="font-size:10px;font-weight:500;fill:#9CA3AF" x="' + (w/2) + '" y="' + (h - 12) + '" text-anchor="middle">{val}</text>';
+});
 
-function toggle(node) {
-  const ch = node.parentElement.querySelector('.children');
-  if (!ch) return;
-  if (ch.classList.contains('open')) { ch.classList.remove('open'); node.classList.remove('expanded'); }
-  else { ch.classList.add('open'); node.classList.add('expanded'); setTimeout(() => ch.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 200); }
-}
+// SVG defs for gradients
+FamilyTree.templates.cerrado_male.defs =
+  '<defs>' +
+  '<linearGradient id="gradMale" x1="0%" y1="0%" x2="100%" y2="100%">' +
+    '<stop offset="0%" style="stop-color:#3B82F6"/>' +
+    '<stop offset="100%" style="stop-color:#1E40AF"/>' +
+  '</linearGradient>' +
+  '<linearGradient id="gradFemale" x1="0%" y1="0%" x2="100%" y2="100%">' +
+    '<stop offset="0%" style="stop-color:#EC4899"/>' +
+    '<stop offset="100%" style="stop-color:#BE185D"/>' +
+  '</linearGradient>' +
+  '<linearGradient id="gradChild" x1="0%" y1="0%" x2="100%" y2="100%">' +
+    '<stop offset="0%" style="stop-color:#F59E0B"/>' +
+    '<stop offset="100%" style="stop-color:#D97706"/>' +
+  '</linearGradient>' +
+  '<linearGradient id="gradUnk" x1="0%" y1="0%" x2="100%" y2="100%">' +
+    '<stop offset="0%" style="stop-color:#9CA3AF"/>' +
+    '<stop offset="100%" style="stop-color:#6B7280"/>' +
+  '</linearGradient>' +
+  '<filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">' +
+    '<feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#000" flood-opacity="0.15"/>' +
+  '</filter>' +
+  '</defs>';
 
-function autoExpand() {
-  document.querySelectorAll('.node:not(.leaf)').forEach(n => {
-    const nm = n.querySelector('.node-name')?.textContent || '';
-    if (nm === 'Rodrigo' || nm === 'Isabela') {
-      const ch = n.parentElement.querySelector('.children');
-      if (ch) { ch.classList.add('open'); n.classList.add('expanded'); }
-    }
-  });
-}
-
-/* ===== FULL TREE VIEW (SVG) ===== */
-function shortName(name) {
-  if (name === 'Desconhecido') return '?';
-  const parts = name.split(' ');
-  const skip = ['de','do','da','dos','das'];
-  if (parts.length <= 2) return parts[0];
-  const meaningful = parts.filter(w => !skip.includes(w.toLowerCase()));
-  if (meaningful.length <= 2) return meaningful[0];
-  return meaningful[0] + ' ' + meaningful.slice(1).map(w => w.charAt(0) + '.').join('');
-}
-
-function renderFullTree() {
-  const SVG_W = 1500, LINE_COLOR = '#8D6E63', LINE_W = 2;
-  const GEN_LABELS = ['Filhos','Pais','Avos','Bisavos','Tataravos'];
-  const GEN_LABELS_DISPLAY = ['Filhos','Pais','Av\u00f3s','Bisav\u00f3s','Tatarav\u00f3s'];
-  // Radii per generation
-  const R = [22, 20, 18, 16, 14];
-  // Y positions per generation (top = children, going down)
-  const Y = [50, 150, 290, 420, 550];
-  const SVG_H = 620;
-  const LABEL_X = 50;
-  const CENTER_X = SVG_W / 2;
-  // Horizontal spans for each side (left=Rodrigo, right=Isabela)
-  const LEFT_MIN = 100, LEFT_MAX = CENTER_X - 30;
-  const RIGHT_MIN = CENTER_X + 30, RIGHT_MAX = SVG_W - 100;
-
-  function gColor(g) { return g === 'M' ? '#3B82F6' : g === 'F' ? '#EC4899' : '#9CA3AF'; }
-  function gColorDark(g) { return g === 'M' ? '#1E40AF' : g === 'F' ? '#BE185D' : '#6B7280'; }
-
-  // Build SVG elements array
-  let lines = []; // drawn first (behind)
-  let nodes = []; // drawn on top
-
-  // Helper: draw a person circle+text at (x,y) with given radius
-  function drawPerson(x, y, person, r) {
-    const c1 = gColor(person.gender), c2 = gColorDark(person.gender);
-    const gradId = 'g' + Math.random().toString(36).substr(2,6);
-    let s = '<defs><linearGradient id="'+gradId+'" x1="0" y1="0" x2="1" y2="1">';
-    s += '<stop offset="0%" stop-color="'+c1+'"/><stop offset="100%" stop-color="'+c2+'"/>';
-    s += '</linearGradient></defs>';
-    s += '<circle cx="'+x+'" cy="'+y+'" r="'+r+'" fill="url(#'+gradId+')" stroke="white" stroke-width="2" filter="url(#shadow)"/>';
-    s += '<text x="'+x+'" y="'+(y+1)+'" text-anchor="middle" dominant-baseline="central" fill="white" font-family="Nunito,sans-serif" font-weight="800" font-size="'+(r*0.85)+'px">'+ini(person.name)+'</text>';
-    s += '<text x="'+x+'" y="'+(y+r+14)+'" text-anchor="middle" fill="#374151" font-family="Nunito,sans-serif" font-weight="700" font-size="'+(r < 16 ? 9 : r < 20 ? 10 : 11)+'px">'+shortName(person.name)+'</text>';
-    return s;
-  }
-
-  // Helper: draw heart between couple
-  function drawHeart(x1, y, x2) {
-    const mx = (x1 + x2) / 2;
-    return '<text x="'+mx+'" y="'+(y+1)+'" text-anchor="middle" dominant-baseline="central" font-size="12px">\u2764\uFE0F</text>';
-  }
-
-  // Helper: horizontal couple line + vertical line down to child
-  function drawCoupleToChild(fx, fy, mx, my, cx, cy, r) {
-    let s = '';
-    // Horizontal line between couple
-    s += '<line x1="'+(fx+r)+'" y1="'+fy+'" x2="'+(mx-r)+'" y2="'+my+'" stroke="'+LINE_COLOR+'" stroke-width="'+LINE_W+'" stroke-linecap="round"/>';
-    // Vertical from couple midpoint down
-    const midX = (fx + mx) / 2;
-    s += '<line x1="'+midX+'" y1="'+fy+'" x2="'+midX+'" y2="'+(fy+12)+'" stroke="'+LINE_COLOR+'" stroke-width="'+LINE_W+'" stroke-linecap="round"/>';
-    // Vertical down to child (with a small gap for the circle)
-    const childR = R[getGen(cy)];
-    s += '<line x1="'+midX+'" y1="'+(fy+12)+'" x2="'+cx+'" y2="'+(cy - childR - 16)+'" stroke="'+LINE_COLOR+'" stroke-width="'+LINE_W+'" stroke-linecap="round"/>';
-    // Small dot at bend
-    s += '<circle cx="'+midX+'" cy="'+(fy+12)+'" r="3" fill="'+LINE_COLOR+'"/>';
-    return s;
-  }
-
-  function getGen(y) {
-    for (let i = 0; i < Y.length; i++) { if (Math.abs(Y[i] - y) < 20) return i; }
-    return 4;
-  }
-
-  // Helper: vertical line from person down to couple below
-  function drawVertDown(px, py, targetY, r) {
-    return '<line x1="'+px+'" y1="'+(py+r+16)+'" x2="'+px+'" y2="'+(targetY - R[getGen(targetY)] - 16)+'" stroke="'+LINE_COLOR+'" stroke-width="'+LINE_W+'" stroke-linecap="round" opacity="0.5"/>';
-  }
-
-  // ---- LAYOUT POSITIONS ----
-  const f = tree.father, m = tree.mother;
-
-  // Gen 0: Children centered
-  const theoX = CENTER_X - 35, dudaX = CENTER_X + 35;
-
-  // Gen 1: Parents centered
-  const rodrigoX = CENTER_X - 50, isabelaX = CENTER_X + 50;
-
-  // Gen 2: Grandparents (2 couples, split left/right)
-  const leftMid = (LEFT_MIN + LEFT_MAX) / 2;
-  const rightMid = (RIGHT_MIN + RIGHT_MAX) / 2;
-  const sueliX = leftMid - 35, deilaX = leftMid + 35;
-  const jbX = rightMid - 35, giceliX = rightMid + 35;
-
-  // Gen 3: Great-grandparents (4 couples)
-  // Left side: 2 couples
-  const leftQ1 = LEFT_MIN + (LEFT_MAX - LEFT_MIN) * 0.25;
-  const leftQ3 = LEFT_MIN + (LEFT_MAX - LEFT_MIN) * 0.75;
-  const euripidesX = leftQ1 - 32, porcenaX = leftQ1 + 32;
-  const descX = leftQ3 - 32, rosarioX = leftQ3 + 32;
-  // Right side: 2 couples
-  const rightQ1 = RIGHT_MIN + (RIGHT_MAX - RIGHT_MIN) * 0.25;
-  const rightQ3 = RIGHT_MIN + (RIGHT_MAX - RIGHT_MIN) * 0.75;
-  const jprotoX = rightQ1 - 32, edsoninaX = rightQ1 + 32;
-  const alaorX = rightQ3 - 32, neuzaX = rightQ3 + 32;
-
-  // Gen 4: Great-great-grandparents (7 couples - Desconhecido has no parents)
-  // Left side: 3 couples (Euripides parents, Porcena parents, Maria do Rosario parents)
-  // Euripides parents
-  const lSpan = LEFT_MAX - LEFT_MIN;
-  const l4_1 = LEFT_MIN + lSpan * 0.12;
-  const l4_2 = LEFT_MIN + lSpan * 0.37;
-  const l4_3 = LEFT_MIN + lSpan * 0.75;
-  const limiroX = l4_1 - 28, marianaX = l4_1 + 28;
-  const jrosaX = l4_2 - 28, diolinaX = l4_2 + 28;
-  const jaugustoX = l4_3 - 28, dagmarX = l4_3 + 28;
-
-  // Right side: 4 couples
-  const rSpan = RIGHT_MAX - RIGHT_MIN;
-  const r4_1 = RIGHT_MIN + rSpan * 0.12;
-  const r4_2 = RIGHT_MIN + rSpan * 0.37;
-  const r4_3 = RIGHT_MIN + rSpan * 0.62;
-  const r4_4 = RIGHT_MIN + rSpan * 0.88;
-  const arturX = r4_1 - 28, ambrosinaX = r4_1 + 28;
-  const oscarX = r4_2 - 28, corneliaX = r4_2 + 28;
-  const androginoX = r4_3 - 28, olimpiaCarmoX = r4_3 + 28;
-  const sebastiaoX = r4_4 - 28, olimpiaCruzX = r4_4 + 28;
-
-  // ---- BUILD SVG ----
-  let svg = '<svg xmlns="http://www.w3.org/2000/svg" width="'+SVG_W+'" height="'+SVG_H+'" viewBox="0 0 '+SVG_W+' '+SVG_H+'" style="min-width:'+SVG_W+'px">';
-
-  // Defs: shadow filter
-  svg += '<defs><filter id="shadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.15"/></filter></defs>';
-
-  // Background
-  svg += '<rect x="0" y="0" width="'+SVG_W+'" height="'+SVG_H+'" rx="16" fill="white"/>';
-
-  // Center divider (from gen2 down)
-  svg += '<line x1="'+CENTER_X+'" y1="'+(Y[2]-40)+'" x2="'+CENTER_X+'" y2="'+(SVG_H-20)+'" stroke="url(#divider)" stroke-width="2" stroke-dasharray="6,4" opacity="0.6"/>';
-  svg += '<defs><linearGradient id="divider" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FBBF24"/><stop offset="100%" stop-color="#60A5FA"/></linearGradient></defs>';
-
-  // Generation labels on the left
-  for (let i = 0; i < 5; i++) {
-    svg += '<text x="'+LABEL_X+'" y="'+Y[i]+'" text-anchor="middle" fill="#9CA3AF" font-family="Nunito,sans-serif" font-weight="700" font-size="10px" transform="rotate(-90,'+LABEL_X+','+Y[i]+')">'+GEN_LABELS_DISPLAY[i]+'</text>';
-  }
-
-  // Family labels at gen 2
-  svg += '<text x="'+leftMid+'" y="'+(Y[2]-40)+'" text-anchor="middle" fill="#92400E" font-family="Nunito,sans-serif" font-weight="800" font-size="12px">\uD83D\uDC99 Fam\u00edlia Rodrigo</text>';
-  svg += '<text x="'+rightMid+'" y="'+(Y[2]-40)+'" text-anchor="middle" fill="#1E40AF" font-family="Nunito,sans-serif" font-weight="800" font-size="12px">\uD83D\uDC97 Fam\u00edlia Isabela</text>';
-
-  // ---- CONNECTION LINES (drawn first, behind nodes) ----
-
-  // Parents couple -> children
-  svg += '<line x1="'+(rodrigoX+R[1])+'" y1="'+Y[1]+'" x2="'+(isabelaX-R[1])+'" y2="'+Y[1]+'" stroke="'+LINE_COLOR+'" stroke-width="'+LINE_W+'" stroke-linecap="round"/>';
-  svg += drawHeart(rodrigoX, Y[1], isabelaX);
-  // Vertical from parents midpoint up to children level
-  const parentsMid = CENTER_X;
-  svg += '<line x1="'+parentsMid+'" y1="'+Y[1]+'" x2="'+parentsMid+'" y2="'+(Y[1]-18)+'" stroke="'+LINE_COLOR+'" stroke-width="'+LINE_W+'" stroke-linecap="round"/>';
-  // Fork to Theo and Duda
-  svg += '<line x1="'+theoX+'" y1="'+(Y[0]+R[0]+16)+'" x2="'+theoX+'" y2="'+(Y[1]-18)+'" stroke="'+LINE_COLOR+'" stroke-width="'+LINE_W+'" stroke-linecap="round"/>';
-  svg += '<line x1="'+dudaX+'" y1="'+(Y[0]+R[0]+16)+'" x2="'+dudaX+'" y2="'+(Y[1]-18)+'" stroke="'+LINE_COLOR+'" stroke-width="'+LINE_W+'" stroke-linecap="round"/>';
-  svg += '<line x1="'+theoX+'" y1="'+(Y[1]-18)+'" x2="'+dudaX+'" y2="'+(Y[1]-18)+'" stroke="'+LINE_COLOR+'" stroke-width="'+LINE_W+'" stroke-linecap="round"/>';
-  svg += '<circle cx="'+parentsMid+'" cy="'+(Y[1]-18)+'" r="3" fill="'+LINE_COLOR+'"/>';
-
-  // Rodrigo <- grandparents (Sueli + Deila)
-  svg += drawCoupleToChild(sueliX, Y[2], deilaX, Y[2], rodrigoX, Y[1], R[2]);
-  svg += drawHeart(sueliX, Y[2], deilaX);
-
-  // Isabela <- grandparents (JB + Giceli)
-  svg += drawCoupleToChild(jbX, Y[2], giceliX, Y[2], isabelaX, Y[1], R[2]);
-  svg += drawHeart(jbX, Y[2], giceliX);
-
-  // Sueli <- great-grandparents (Euripides + Porcena)
-  svg += drawCoupleToChild(euripidesX, Y[3], porcenaX, Y[3], sueliX, Y[2], R[3]);
-  svg += drawHeart(euripidesX, Y[3], porcenaX);
-
-  // Deila <- great-grandparents (Desconhecido + Maria do Rosario)
-  svg += drawCoupleToChild(descX, Y[3], rosarioX, Y[3], deilaX, Y[2], R[3]);
-  svg += drawHeart(descX, Y[3], rosarioX);
-
-  // JB <- great-grandparents (Joao Proto + Edsonina)
-  svg += drawCoupleToChild(jprotoX, Y[3], edsoninaX, Y[3], jbX, Y[2], R[3]);
-  svg += drawHeart(jprotoX, Y[3], edsoninaX);
-
-  // Giceli <- great-grandparents (Alaor + Neuza)
-  svg += drawCoupleToChild(alaorX, Y[3], neuzaX, Y[3], giceliX, Y[2], R[3]);
-  svg += drawHeart(alaorX, Y[3], neuzaX);
-
-  // Gen 4 connections
-  // Euripides <- (Limiro + Mariana)
-  svg += drawCoupleToChild(limiroX, Y[4], marianaX, Y[4], euripidesX, Y[3], R[4]);
-  svg += drawHeart(limiroX, Y[4], marianaX);
-
-  // Porcena <- (Jose Rosa + Diolina)
-  svg += drawCoupleToChild(jrosaX, Y[4], diolinaX, Y[4], porcenaX, Y[3], R[4]);
-  svg += drawHeart(jrosaX, Y[4], diolinaX);
-
-  // Desconhecido has no parents - skip
-
-  // Maria do Rosario <- (Jose Augusto + Dagmar)
-  svg += drawCoupleToChild(jaugustoX, Y[4], dagmarX, Y[4], rosarioX, Y[3], R[4]);
-  svg += drawHeart(jaugustoX, Y[4], dagmarX);
-
-  // Joao Proto <- (Artur + Ambrosina)
-  svg += drawCoupleToChild(arturX, Y[4], ambrosinaX, Y[4], jprotoX, Y[3], R[4]);
-  svg += drawHeart(arturX, Y[4], ambrosinaX);
-
-  // Edsonina <- (Oscar + Cornelia)
-  svg += drawCoupleToChild(oscarX, Y[4], corneliaX, Y[4], edsoninaX, Y[3], R[4]);
-  svg += drawHeart(oscarX, Y[4], corneliaX);
-
-  // Alaor <- (Androgino + Olimpia do Carmo)
-  svg += drawCoupleToChild(androginoX, Y[4], olimpiaCarmoX, Y[4], alaorX, Y[3], R[4]);
-  svg += drawHeart(androginoX, Y[4], olimpiaCarmoX);
-
-  // Neuza <- (Sebastiao + Olimpia Cruz)
-  svg += drawCoupleToChild(sebastiaoX, Y[4], olimpiaCruzX, Y[4], neuzaX, Y[3], R[4]);
-  svg += drawHeart(sebastiaoX, Y[4], olimpiaCruzX);
-
-  // ---- NODES (drawn on top) ----
-
-  // Gen 0: Children (special gold ring)
-  [{ p: tree.children[0], x: theoX }, { p: tree.children[1], x: dudaX }].forEach(({p, x}) => {
-    const c1 = gColor(p.gender), c2 = gColorDark(p.gender);
-    const gid = 'gs' + Math.random().toString(36).substr(2,6);
-    svg += '<defs><linearGradient id="'+gid+'" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="'+c1+'"/><stop offset="100%" stop-color="'+c2+'"/></linearGradient></defs>';
-    svg += '<circle cx="'+x+'" cy="'+Y[0]+'" r="'+(R[0]+4)+'" fill="none" stroke="#F59E0B" stroke-width="3"/>';
-    svg += '<circle cx="'+x+'" cy="'+Y[0]+'" r="'+R[0]+'" fill="url(#'+gid+')" filter="url(#shadow)"/>';
-    svg += '<text x="'+x+'" y="'+(Y[0]+1)+'" text-anchor="middle" dominant-baseline="central" fill="white" font-family="Nunito,sans-serif" font-weight="800" font-size="'+(R[0]*0.85)+'px">'+ini(p.name)+'</text>';
-    svg += '<text x="'+x+'" y="'+(Y[0]+R[0]+18)+'" text-anchor="middle" fill="#374151" font-family="Nunito,sans-serif" font-weight="800" font-size="13px">\u2B50 '+p.name+'</text>';
-  });
+// Family data
+var nodes = [
+  // Gen 0: Children
+  { id: 1, name: 'Théo', role: 'Filho', gen: '⭐ 5ª geração', fid: 3, mid: 4, template: 'cerrado_child' },
+  { id: 2, name: 'Duda', role: 'Filha', gen: '⭐ 5ª geração', fid: 3, mid: 4, template: 'cerrado_child' },
 
   // Gen 1: Parents
-  svg += drawPerson(rodrigoX, Y[1], f, R[1]);
-  svg += drawPerson(isabelaX, Y[1], m, R[1]);
+  { id: 3, name: 'Rodrigo', role: 'Papai', gen: '4ª geração', pids: [4], fid: 5, mid: 6, template: 'cerrado_male' },
+  { id: 4, name: 'Isabela', role: 'Mamãe', gen: '4ª geração', pids: [3], fid: 7, mid: 8, template: 'cerrado_female' },
 
   // Gen 2: Grandparents
-  svg += drawPerson(sueliX, Y[2], f.father, R[2]);
-  svg += drawPerson(deilaX, Y[2], f.mother, R[2]);
-  svg += drawPerson(jbX, Y[2], m.father, R[2]);
-  svg += drawPerson(giceliX, Y[2], m.mother, R[2]);
+  { id: 5, name: 'Sueli', role: 'Avô Paterno', gen: '3ª geração', pids: [6], fid: 9, mid: 10, template: 'cerrado_male' },
+  { id: 6, name: 'Deila', role: 'Avó Paterna', gen: '3ª geração', pids: [5], fid: 11, mid: 12, template: 'cerrado_female' },
+  { id: 7, name: 'João Batista Luiz Pereira', role: 'Avô Materno', gen: '3ª geração', pids: [8], fid: 13, mid: 14, template: 'cerrado_male' },
+  { id: 8, name: 'Giceli', role: 'Avó Materna', gen: '3ª geração', pids: [7], fid: 15, mid: 16, template: 'cerrado_female' },
 
   // Gen 3: Great-grandparents
-  svg += drawPerson(euripidesX, Y[3], f.father.father, R[3]);
-  svg += drawPerson(porcenaX, Y[3], f.father.mother, R[3]);
-  svg += drawPerson(descX, Y[3], f.mother.father, R[3]);
-  svg += drawPerson(rosarioX, Y[3], f.mother.mother, R[3]);
-  svg += drawPerson(jprotoX, Y[3], m.father.father, R[3]);
-  svg += drawPerson(edsoninaX, Y[3], m.father.mother, R[3]);
-  svg += drawPerson(alaorX, Y[3], m.mother.father, R[3]);
-  svg += drawPerson(neuzaX, Y[3], m.mother.mother, R[3]);
+  { id: 9, name: 'Eurípides Ferreira Lopes', role: 'Bisavô', gen: '2ª geração', pids: [10], fid: 17, mid: 18, template: 'cerrado_male' },
+  { id: 10, name: 'Porcena Diolina dos Reis', role: 'Bisavó', gen: '2ª geração', pids: [9], fid: 19, mid: 20, template: 'cerrado_female' },
+  { id: 11, name: 'Desconhecido', role: 'Bisavô', gen: '2ª geração', pids: [12], template: 'cerrado_unknown' },
+  { id: 12, name: 'Maria do Rosário do Nascimento', role: 'Bisavó', gen: '2ª geração', pids: [11], fid: 21, mid: 22, template: 'cerrado_female' },
+  { id: 13, name: 'João Proto Pereira', role: 'Bisavô', gen: '2ª geração', pids: [14], fid: 23, mid: 24, template: 'cerrado_male' },
+  { id: 14, name: 'Edsonina Luiza Pereira', role: 'Bisavó', gen: '2ª geração', pids: [13], fid: 25, mid: 26, template: 'cerrado_female' },
+  { id: 15, name: 'Alaor Gabriel de Carvalho', role: 'Bisavô', gen: '2ª geração', pids: [16], fid: 27, mid: 28, template: 'cerrado_male' },
+  { id: 16, name: 'Neuza Rodrigues de Carvalho', role: 'Bisavó', gen: '2ª geração', pids: [15], fid: 29, mid: 30, template: 'cerrado_female' },
 
   // Gen 4: Great-great-grandparents
-  svg += drawPerson(limiroX, Y[4], f.father.father.father, R[4]);
-  svg += drawPerson(marianaX, Y[4], f.father.father.mother, R[4]);
-  svg += drawPerson(jrosaX, Y[4], f.father.mother.father, R[4]);
-  svg += drawPerson(diolinaX, Y[4], f.father.mother.mother, R[4]);
-  svg += drawPerson(jaugustoX, Y[4], f.mother.mother.father, R[4]);
-  svg += drawPerson(dagmarX, Y[4], f.mother.mother.mother, R[4]);
-  svg += drawPerson(arturX, Y[4], m.father.father.father, R[4]);
-  svg += drawPerson(ambrosinaX, Y[4], m.father.father.mother, R[4]);
-  svg += drawPerson(oscarX, Y[4], m.father.mother.father, R[4]);
-  svg += drawPerson(corneliaX, Y[4], m.father.mother.mother, R[4]);
-  svg += drawPerson(androginoX, Y[4], m.mother.father.father, R[4]);
-  svg += drawPerson(olimpiaCarmoX, Y[4], m.mother.father.mother, R[4]);
-  svg += drawPerson(sebastiaoX, Y[4], m.mother.mother.father, R[4]);
-  svg += drawPerson(olimpiaCruzX, Y[4], m.mother.mother.mother, R[4]);
+  { id: 17, name: 'Limiro Ferreira Lopes', role: 'Tataravô', gen: '1ª geração', pids: [18], template: 'cerrado_male' },
+  { id: 18, name: 'Mariana', role: 'Tataravó', gen: '1ª geração', pids: [17], template: 'cerrado_female' },
+  { id: 19, name: 'José Rosa', role: 'Tataravô', gen: '1ª geração', pids: [20], template: 'cerrado_male' },
+  { id: 20, name: 'Diolina dos Reis', role: 'Tataravó', gen: '1ª geração', pids: [19], template: 'cerrado_female' },
+  { id: 21, name: 'José Augusto Gonçalves', role: 'Tataravô', gen: '1ª geração', pids: [22], template: 'cerrado_male' },
+  { id: 22, name: 'Dagmar do Nascimento', role: 'Tataravó', gen: '1ª geração', pids: [21], template: 'cerrado_female' },
+  { id: 23, name: 'Artur Proto Arantes', role: 'Tataravô', gen: '1ª geração', pids: [24], template: 'cerrado_male' },
+  { id: 24, name: 'Ambrosina Pereira Arantes', role: 'Tataravó', gen: '1ª geração', pids: [23], template: 'cerrado_female' },
+  { id: 25, name: 'Oscar Luís de Mendonça', role: 'Tataravô', gen: '1ª geração', pids: [26], template: 'cerrado_male' },
+  { id: 26, name: 'Cornélia Rosa Arantes', role: 'Tataravó', gen: '1ª geração', pids: [25], template: 'cerrado_female' },
+  { id: 27, name: 'Andrógino Gabriel de Carvalho', role: 'Tataravô', gen: '1ª geração', pids: [28], template: 'cerrado_male' },
+  { id: 28, name: 'Olímpia do Carmo', role: 'Tataravó', gen: '1ª geração', pids: [27], template: 'cerrado_female' },
+  { id: 29, name: 'Sebastião Rodrigues da Cunha', role: 'Tataravô', gen: '1ª geração', pids: [30], template: 'cerrado_male' },
+  { id: 30, name: 'Olímpia Batista da Cruz', role: 'Tataravó', gen: '1ª geração', pids: [29], template: 'cerrado_female' }
+];
 
-  svg += '</svg>';
-  document.getElementById('fullTree').innerHTML = '<div style="min-width:'+SVG_W+'px">'+svg+'</div>';
-}
-
-/* ===== INIT ===== */
-renderList();
-renderFullTree();
-setTimeout(autoExpand, 300);
+// Initialize the tree
+var family = new FamilyTree(document.getElementById('tree'), {
+  template: 'cerrado_male',
+  mode: 'light',
+  roots: [1, 2],
+  mouseScrool: FamilyTree.action.zoom,
+  nodeMouseClick: FamilyTree.action.details,
+  nodeBinding: {
+    field_0: 'name',
+    field_1: 'role',
+    field_2: 'gen'
+  },
+  nodes: nodes,
+  nodeMenu: {
+    details: { text: 'Ver detalhes' }
+  },
+  toolbar: {
+    zoom: true,
+    fit: true,
+    expandAll: true,
+    fullScreen: true
+  },
+  connectors: {
+    type: 'step',
+    color: '#8D6E63',
+    'stroke-width': 2
+  },
+  padding: 30,
+  orientation: FamilyTree.orientation.bottom,
+  levelSeparation: 60,
+  siblingSeparation: 20,
+  subtreeSeparation: 40
+});
 </script>
+
 </body>
 </html>
